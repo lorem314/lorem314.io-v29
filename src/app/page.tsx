@@ -1,65 +1,149 @@
-import Image from "next/image";
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
-export default function Home() {
+import { CodeWithTabs } from "@/components/codehike/code-with-tabs"
+import { cn } from "@/lib/utils"
+import { CodeViewer } from "@/components/codehike/code-viewer"
+import { readFile } from "@/components/sandpack/utils"
+import { ProjectSandbox } from "@/components/sandpack/project-sandbox"
+import { ComponentPreview } from "@/components/sandpack/component-preview"
+import { ExternalLink } from "@/components/custom-ui/external-link"
+import { CodeSandbox } from "@/components/sandpack/code-sandbox"
+
+export default async function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <Card className="mx-auto max-w-3xl overflow-visible">
+        <CardHeader>
+          <CardTitle>lorem314.io</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>欢迎来到我的博客</p>
+
+          <CodeSandbox
+            template="react-ts"
+            folder="/sandbox/projects/0-vite-test"
+            files={{
+              "/index.html": true,
+              "/main.tsx": true,
+              "/App.tsx": "/App.tsx",
+            }}
+            // readOnly
+            options={{
+              activeFile: "/App.tsx",
+              // visibleFiles: ["/main.tsx"],
+            }}
+          />
+
+          <CodeViewer
+            file="/sandbox/codes/test2.tsx"
+            title="代码示例fwesdfsdf"
+            showCopyButton
+            showLineNumbers
+          />
+
+          <CodeViewer
+            file="/sandbox/codes/test2.tsx"
+            title="代码示例fwesdfsdf"
+            showCopyButton
+            showLineNumbers
+          />
+
+          {/* <div className="flex h-[1200px] border">
+            <div className="grow">sdfsdfsdsdf</div>
+            <div className="relative bg-rose-100">
+              <button className="sticky top-20 bg-green-200">btn</button>
+            </div>
+          </div> */}
+
+          {/* 
+        <CodeSandbox
+        folder="/sandbox/projects/0-vite-test"
+        files={{
+          "/src/App.tsx": "/src/App.another.tsx",
+          }}
+          template="vite-react-ts"
+          /> */}
+
+          {/* <CodeSandbox
+          folder="/sandbox/projects/0-test"
+          files={{
+            "/index.tsx": "/src/index.tsx",
+            "/App.tsx": "/src/App.preview.tsx",
+            }}
+            /> */}
+
+          {/* <ProjectSandbox
+          template="react-ts"
+          options={{
+            activeFile: "/src/App.tsx",
+            }}
+            title="用 React 和 TypeScript 编写抽屉组件"
+            files={{
+              "/src/index.tsx": {
+                path: "/sandbox/projects/1-drawer/src/index.tsx",
+                },
+                "/src/App.tsx": {
+                  path: "/sandbox/projects/1-drawer/src/App.tsx",
+                  },
+                  "/src/components/Drawer.tsx": {
+                    path: "/sandbox/projects/1-drawer/src/components/Drawer.tsx",
+                    // hidden: true,
+                    },
+                    "/src/style.css": "/sandbox/projects/1-drawer/src/style.css",
+                    }}
+                    previewHeight="500px"
+                    /> */}
+
+          {/* <ProjectSandbox
+          // folder="/sandbox/projects/1-tree-list"
+          folder={{
+            "/App.tsx": "/sandbox/projects/1-tree-list/App.tsx",
+            "/styles.css": {
+              path: "/sandbox/projects/1-tree-list/styles.css",
+              },
+              "/src/data.ts": "/sandbox/projects/1-tree-list/src/data.ts",
+              "/src/details.tsx": "/sandbox/projects/1-tree-list/src/details.tsx",
+              "/src/icons.tsx": "/sandbox/projects/1-tree-list/src/icons.tsx",
+              "/src/tree-list.tsx":
+              "/sandbox/projects/1-tree-list/src/tree-list.tsx",
+              }}
+              template="react-ts"
+              title="可折叠树状列表组件"
+              previewHeight="48rem"
+              /> */}
+
+          {/* <ComponentPreview
+            template="react"
+            folder="/sandbox/components/3-tree-list"
+            file="/sandbox/components/0-test/src/tester.jsx"
+            title="组件预览"
+            meta={`showCopyButton`}
+            /> */}
+
+          {/* <CodeWithTabs
+            showCopyButton
+            tabs={[
+              {
+                lang: "jsx",
+                meta: "Badge",
+                value: await readFile("/sandbox/codes/test.tsx"),
+                },
+                {
+                  lang: "tsx",
+                  meta: "Avatar",
+                  value: await readFile("/sandbox/codes/test2.tsx"),
+                  },
+                  ]}
+                  /> */}
+        </CardContent>
+      </Card>
+      {/* <div className="flex h-[1200px] border">
+        <div className="grow">sdfsdfsdsdf</div>
+        <div className="relative bg-rose-100">
+          <button className="sticky top-16">btn</button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+      </div> */}
+    </>
+  )
 }

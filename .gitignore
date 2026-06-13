@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# custom below -------------------------------------------------
+
+# vscode
+.vscode/
+
+# fumadocs
+/.source
+/drafts/
+
+# docker plugins
+/plugins/
+
+# docker config override
+docker-compose.override.yml

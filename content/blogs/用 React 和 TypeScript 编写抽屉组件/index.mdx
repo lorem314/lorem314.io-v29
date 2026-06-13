@@ -1,0 +1,439 @@
+---
+title: "用 React 和 TypeScript 编写抽屉组件"
+tags: ["React", "TypeScript", "自定义组件"]
+createdAt: "2026-04-01"
+summary: "抽屉（Drawer）是一种从屏幕边缘滑入的侧边面板，常用于展示辅助信息或操作。本文从零开始，使用 React 和 TypeScript 完整实现一个支持四方向、带动画、Portal 挂载、子组件可控关闭的功能完备抽屉组件。"
+cover:
+  src: "/images/blogs/用 React 和 TypeScript 编写抽屉组件/cover.webp"
+  width: 1920
+  height: 1080
+bili:
+  src: "https://www.bilibili.com/"
+---
+
+## 组件结构
+
+抽屉组件的参数如下：
+
+- `open: boolean` ：抽屉的打开、关闭状态。
+- `onClose: () => void` ：组件内部使用，用于从逻辑上关闭抽屉。
+- `side: "top" | "right" | "bottom" | "left"` ：抽屉的位置。
+- `size: string` ：抽屉的尺寸（宽度或高度）。
+- `children: React.ReactElement` ：抽屉中的内容。
+
+新建 `drawer.tsx` 文件：
+
+```tsx
+type Side = "top" | "right" | "bottom" | "left"
+
+type DrawerProps = {
+  open: boolean
+  onClose: () => void
+  side?: Side
+  size?: string
+  children: React.ReactNode
+}
+
+export const Drawer = (props: DrawerProps) => {
+  const { open, ...restProps } = props
+
+  return open ? <Portal {...restProps} /> : null
+}
+```
+
+当抽屉呈打开状态时，才渲染 Portal 组件，并传入其余的参数。
+
+## 使用 createPortal 实现 body 挂载
+
+抽屉的内容一般是挂载到文档中的 body 元素上，需要用到 react-dom 中的 `createPortal` 函数：
+
+```tsx handlers="mark"
+// !mark
+import { createPortal } from "react-dom"
+
+// Drawer 组件
+
+const Portal = ({
+  onClose,
+  side = "left",
+  size = "320px",
+  children,
+}: Omit<DrawerProps, "open">) => {
+  // !mark
+  return createPortal(
+    <>
+      <div />
+      <div>{children}</div>
+    </>,
+    document.body,
+  )
+}
+```
+
+在 Portal 接收参数的同时，定义好默认值：
+
+- side 默认为 left，从左侧滑入滑出
+- size 默认为 320 个像素
+
+## 界面结构与样式
+
+抽屉主要由两层组成：
+
+- 遮罩层（backdrop）：覆盖整个窗口，半透明黑色背景
+- 内容层：根据 side 定位并显示实际内容
+
+由于需要的样式不是很多，这里就通过内联的方式，直接写在 `style` 属性上。
+
+### 遮罩层
+
+遮罩层占据整个页面，且不会因为有滚动条而改变位置，所以是**固定定位**；大小需要占满浏览器的整个窗口，用 `inset` 属性将上下左右的距离都设置为 0。
+
+为了让抽屉打开后有层次感，可以添加半透明黑色背景；其次，为了能让用户的关注聚焦到抽屉的内容上，还可以用 `backdropFilter` 属性给背景添加毛玻璃效果：
+
+```tsx handlers="mark"
+const Portal = () => {
+  return createPortal(
+    <>
+      <div
+        style={{
+          // !mark(1:4)
+          position: "fixed",
+          inset: "0",
+          backgroundColor: "rgba(0, 0, 0, 0.25)",
+          backdropFilter: "blur(2px)",
+        }}
+      />
+      <div>{children}</div>
+    </>,
+    document.body,
+  )
+}
+```
+
+### 内容层
+
+内容层也需要是**固定定位**。这里我们通过一个辅助函数 `getPositionProps` ，根据抽屉的位置返回对应的定位样式：
+
+```tsx
+function getPositionProps(side: Side, size: string) {
+  switch (side) {
+    case "top":
+    case "bottom":
+      return { left: 0, right: 0, [side]: 0, height: size }
+    case "right":
+      return { top: 0, bottom: 0, right: 0, width: size }
+    default:
+      return { top: 0, bottom: 0, left: 0, width: size }
+  }
+}
+```
+
+并将其返回值解构到内容层 div 的 style 上：
+
+```tsx handlers="mark"
+const Portal = () => {
+  // !mark
+  const positionProps = getPositionProps(side, size)
+
+  return createPortal(
+    <>
+      <div style={/* styles */} />
+      <div
+        style={{
+          position: "fixed",
+          // !mark(1:2)
+          ...positionProps,
+          backgroundColor: "white",
+        }}
+      >
+        {children}
+      </div>
+    </>,
+    document.body,
+  )
+}
+```
+
+为了能看清抽屉中的内容，再加上一个白色背景。
+
+## 滑入滑出动画
+
+当抽屉打开或关闭时，我们希望能有动画效果，且要根据抽屉位置的不同，从对应方向滑入和滑出。
+
+我们可以把抽屉在初次渲染时先藏起来，然后再将其移动到视窗中。
+
+这里再定义一个函数 `getInitialTransform`，根据抽屉的位置，获取其初始（隐藏）时的位置：
+
+```tsx
+const getInitialTransform = (side: Side) => {
+  switch (side) {
+    case "top":
+      return "translate(0, -100%)"
+    case "right":
+      return "translate(100%, 0)"
+    case "bottom":
+      return "translate(0, 100%)"
+    default:
+      return "translate(-100%, 0)"
+  }
+}
+```
+
+抽屉藏起来时，通过 `transform` 属性来向将要滑动的反方向位移 100%。
+
+用 useState 来保存 transform 的初始值。同时，我们也希望遮罩层的不透明度也是动态变化的，再加上一个 `opacity`。
+
+动画交给 `transition` 属性来负责，动画的过渡时间为 150 毫秒。
+
+```tsx handlers="mark"
+const Portal = () => {
+  // !mark(1:4)
+  const [style, setStyle] = useState({
+    transform: getInitialTransform(side),
+    opacity: 0,
+  })
+
+  const positionProps = getPositionProps(side, size)
+
+  return createPortal(
+    <>
+      <div
+        style={{
+          position: "fixed",
+          inset: "0",
+          backgroundColor: "rgba(0, 0, 0, 0.25)",
+          backdropFilter: "blur(2px)",
+          // !mark(1:2)
+          opacity: style.opacity,
+          transition: "opacity 150ms ease-in-out",
+        }}
+        onClick={handleCloseDrawer}
+      />
+      <div
+        style={{
+          position: "fixed",
+          ...positionProps,
+          backgroundColor: "white",
+          // !mark(1:2)
+          transform: style.transform,
+          transition: "transform 150ms ease-in-out",
+        }}
+      >
+        {children}
+      </div>
+    </>,
+    document.body,
+  )
+}
+```
+
+最后用 `useEffect` 在初次渲染完毕后，设置 style 的值，使其出现在视野中：
+
+```tsx handlers="mark"
+const Portal = () => {
+  const [style, setStyle] = useState()
+
+  // !mark(1:3)
+  useEffect(() => {
+    setStyle({ transform: "translate(0, 0)", opacity: 1 })
+  }, [])
+
+  const positionProps = getPositionProps(side, size)
+
+  return createPortal(/* */)
+}
+```
+
+<blockquote>
+
+抽屉从右侧打开时，由于设置了向 x 轴正方向的位移，可能会触发 body 的水平滚动条，需要添加：
+
+```css
+body {
+  overflow-x: hidden;
+}
+```
+
+</blockquote>
+
+## 关闭逻辑
+
+参数 `onClose` 用于关闭抽屉，其中包含了将 open 设置为 false 的逻辑。
+
+关闭抽屉时，我们需要先等待关闭动画完成，之后再调用 onClose 函数。
+
+新定义函数 `handleCloseDrawer`，将 style 重置为初始值，也就是抽屉藏起来时的位置，从**动画上**关闭抽屉；再通过 setTimeout 在动画执行完毕后，调用 onClose，从**逻辑上**关闭抽屉。
+
+```tsx
+const Portal = () => {
+  const [style, setStyle] = useState()
+
+  useEffect(() => {
+    setStyle({ transform: "translate(0, 0)", opacity: 1 })
+  }, [])
+
+  const handleCloseDrawer = () => {
+    setStyle({ transform: getInitialTransform(side), opacity: 0 })
+    setTimeout(() => {
+      onClose()
+    }, 150)
+  }
+
+  const positionProps = getPositionProps(side, size)
+
+  return createPortal(
+    <>
+      <div style={/* */} onClick={handleCloseDrawer} />
+      <div style={/* */}>{children}</div>
+    </>,
+    document.body,
+  )
+}
+```
+
+最后将 handleCloseDrawer 赋值到阴影层 div 的 onClick 事件上。
+
+## 子组件关闭支持
+
+另外，如果子组件是自定义组件：
+
+```tsx
+const App = () => {
+  return (
+    <Drawer>
+      <CustomDrawerContent />
+    </Drawer>
+  )
+}
+
+const CustomDrawerContent = ({ onCloseDrawer }) => {
+  return (
+    <div>
+      <div>抽屉内容</div>
+      <button onClick={onCloseDrawer}>关闭抽屉</button>
+    </div>
+  )
+}
+```
+
+或者是一个函数：
+
+```tsx
+const App = () => {
+  return (
+    <Drawer>
+      {({ onCloseDrawer }) => {
+        return (
+          <div>
+            <div>抽屉内容</div>
+            <button onClick={onCloseDrawer}>关闭抽屉</button>
+          </div>
+        )
+      }}
+    </Drawer>
+  )
+}
+```
+
+如果是这类情况，我们也希望子组件中能够调用到关闭抽屉的函数。为此，我们添加对另一种 children 类型的支持：
+
+```tsx handlers="mark"
+type DrawerProps = {
+  /*  */
+  children:
+    | React.ReactElement
+    // !mark(1:5)
+    | (({
+        handleCloseDrawer,
+      }: {
+        handleCloseDrawer?: () => void
+      }) => React.ReactElement)
+}
+```
+
+现在，children 不仅能是 ReactElement 类型，还可以是函数类型。该函数类型的返回值是 ReactElement，且可以接收可选参数 handleCloseDrawer。
+
+在后面渲染 children 时，要先通过 `typeof` 判断其是否为**函数**类型：
+
+- 是：则直接调用，并传入 handleCloseDrawer
+- 否：则为自定义函数组件，通过 cloneElement 的第二个参数，把 handleCloseDrawer 传入子组件
+
+```tsx handlers="mark"
+const Portal = () => {
+  /* */
+
+  return createPortal(
+    <>
+      <div />
+      <div>
+        {/* !mark(1:8) */}
+        {typeof children === "function"
+          ? children({ handleCloseDrawer })
+          : cloneElement(
+              children as React.ReactElement<{
+                handleCloseDrawer?: () => void
+              }>,
+              { handleCloseDrawer },
+            )}
+      </div>
+    </>,
+    document.body,
+  )
+}
+```
+
+## 隐藏滚动条
+
+当抽屉处于打开状态时，最好是能够暂时阻止 body 元素上滚动条的滚动。
+
+这可以在 Drawer 组件中，用 useEffect 来实现：
+
+```tsx
+export const Drawer = (props: DrawerProps) => {
+  const { open, ...restProps } = props
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflowY = "hidden"
+    } else {
+      document.body.style.overflowY = ""
+    }
+
+    return () => {
+      document.body.style.overflowY = ""
+    }
+  }, [open])
+
+  return open ? <Portal {...restProps} /> : null
+}
+```
+
+在抽屉呈打开状态时，隐藏 body 元素上的垂直滚动条；关闭时，再改回默认值 visible 或是空字符串。
+
+注意此处要在 useEffect 的依赖数组中添加 open，否则其中的 open 将永远是初次渲染 Drawer 组件时传进来的值。
+
+## 代码沙盒
+
+至此就完成了一个简易的抽屉组件。
+
+<ProjectSandbox
+  template="react-ts"
+  options={{
+    activeFile: "/src/App.tsx",
+  }}
+  title="用 React 和 TypeScript 编写抽屉组件"
+  files={{
+    "/src/index.tsx": {
+      path: "/sandbox/projects/1-drawer/src/index.tsx",
+    },
+    "/src/App.tsx": {
+      path: "/sandbox/projects/1-drawer/src/App.tsx",
+    },
+    "/src/components/Drawer.tsx": {
+      path: "/sandbox/projects/1-drawer/src/components/Drawer.tsx",
+      // hidden: true,
+    },
+    "/src/style.css": "/sandbox/projects/1-drawer/src/style.css",
+  }}
+  previewHeight="500px"
+/>

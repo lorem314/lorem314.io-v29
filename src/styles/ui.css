@@ -1,0 +1,63 @@
+/* toc tree-list */
+ul[data-slot="tree-list"] > li {
+  position: relative;
+  margin-left: calc(1em);
+  padding-left: 1em;
+  line-height: 1.75; /* li height 28px */
+  @apply border-muted-foreground/25 border-l;
+}
+ul[data-slot="tree-list"] > li::before {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  content: " ";
+  width: 1em;
+  height: 0.875em;
+  @apply border-muted-foreground/25 border-b;
+}
+ul[data-slot="tree-list"] > li:last-child {
+  border-left: 1px solid transparent;
+}
+ul[data-slot="tree-list"] > li:last-child::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: " ";
+  height: 0.875em;
+  /* height: 1rem; */
+  border-bottom: none;
+  transform: translateX(-1px);
+  @apply border-muted-foreground/25 border-l;
+}
+ul[data-slot="tree-list"] > li:last-child::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: " ";
+  width: 1em;
+  height: 0.875em;
+  @apply border-muted-foreground/25 border-b;
+}
+
+div[data-slot="details-head-in-toc"] {
+  @apply relative flex grow items-start;
+}
+
+details > summary > div[data-slot="details-head-in-toc"]::before {
+  content: " ";
+  height: calc(100% - 28px);
+  position: absolute;
+  top: 28px;
+  left: calc(-1em);
+  @apply border-muted-foreground/25 border-l;
+}
+
+details:not([open]) > summary > div[data-slot="details-head-in-toc"]::before {
+  border-color: transparent;
+}
+
+/* Sandpack Code Editor line number font size */
+.cm-lineNumbers .cm-gutterElement {
+  font-size: 12px;
+  user-select: none;
+}

@@ -1,0 +1,92 @@
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  --tree-list-border-color: rgba(0, 0, 0, 0.1);
+}
+
+ul.tree-list > li {
+  padding-left: 1em;
+  margin-left: calc(0.625em + 4px);
+  line-height: 1.75;
+
+  position: relative;
+
+  border-left: 1px solid var(--tree-list-border-color);
+}
+
+ul.tree-list > li::before {
+  content: " ";
+  width: 1em;
+  height: calc(0.875em - 1px);
+  border-bottom: 1px solid var(--tree-list-border-color);
+
+  /* 
+  伪元素 ::before 默认是行内元素（display: inline）
+  要让 width 和 height 起作用，你需要显式地改变它的显示模式。通常在树状列表中，我们使用 inline-block 或 absolute 定位。 
+  */
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+ul.tree-list > li:last-child {
+  border-left: none;
+}
+
+ul.tree-list > li:last-child::before {
+  /* border-bottom: none; */
+  border-left: 1px solid var(--tree-list-border-color);
+}
+details > summary > div.details-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+details > summary > div.details-head::before {
+  content: " ";
+  /* max-height: 14px; */
+  height: calc(100% - 28px);
+  /* width: 0.5em; */
+  border-left: 1px solid var(--tree-list-border-color);
+
+  position: absolute;
+  top: 28px;
+  left: -0.875em;
+}
+details:not([open]) > summary > div.details-head::before {
+  border-left: none;
+}
+
+summary {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  user-select: none;
+}
+summary:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* button {
+  display: inline-flex;
+  padding: 0;
+  height: fit-content;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+} */
+svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  padding: 5px;
+  fill: gray;
+}
+svg:hover {
+  fill: black;
+}
+span {
+  margin-left: 0.25em;
+}

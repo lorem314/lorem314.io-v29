@@ -1,0 +1,15 @@
+services:
+
+  es01:
+    environment:
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+
+  kibana:
+    deploy:
+      replicas: 0

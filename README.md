@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# lorem314.io
 
-## Getting Started
+个人博客网站
 
-First, run the development server:
+## 技术栈
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- React
+- Next.js
+- TyeScript
+- Fumadocs
+- CodeHike
+- Tailwind CSS
+- tRPC
+- TanStack
+- Elasticsearch
+- Sandpack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<!--
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 备注
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### type module
 
-## Learn More
+在 package.json 中添加了 `"type": "module"`
 
-To learn more about Next.js, take a look at the following resources:
+**原因**：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. 在 CommonJS 环境下，export const client 会被转译成类似 exports.client = ...。
+2. 如果你在另一个文件中使用 import { client }（ESM 语法）去调用一个被视为 CommonJS 的模块，有时会因为命名空间导出（Named Exports）的识别问题导致 SyntaxError，提示找不到该导出项。
+3. 一旦声明了 "type": "module"，Node.js 会严格按照 ESM 规范处理，export 和 import 的对应关系就变得清晰明确，不再有歧义。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+添加后，通过 pnpm run build:es-index 执行的脚本中的 import 导入可以被正确获取位置。
 
-## Deploy on Vercel
+**弊端**：
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. 不能使用 require()：所有文件必须使用 import/export。
+2. 配置文件限制：像 postcss.config.js 或 tailwind.config.js 如果使用了 module.exports，可能需要改名为 .cjs 后缀，或者改为 ESM 语法。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-->
